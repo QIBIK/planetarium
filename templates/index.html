@@ -1,54 +1,201 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Планетарий</title>
-    <!-- <style>
-        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
-        .block { background: #f0f0f0; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
-        .json-links { margin-bottom: 20px; }
-        .btn-json { display: inline-block; padding: 5px 10px; background: #666; color: white; text-decoration: none; border-radius: 3px; font-size: 12px; }
-        select, input { display: block; width: 100%; margin: 10px 0; padding: 5px; }
-        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; }
-    </style> -->
+    <title>Управление Планетарием</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --text-color: #333;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        h1 { margin-bottom: 40px; font-size: 2.5rem; color: #1a1a1a; }
+
+        /* Зеленое уведомление */
+        .alert { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 20px; 
+            border-radius: 10px; 
+            text-align: center; 
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 1100px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            font-weight: bold;
+        }
+
+        /* Контейнер для трех форм */
+        .forms-grid {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            justify-content: center;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-card h3 { 
+            margin-top: 0; 
+            font-size: 1.6rem; 
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--bg-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        input, select { 
+            width: 100%; 
+            padding: 15px; 
+            margin-bottom: 20px; 
+            border: 2px solid #e1e4e8; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-save { 
+            background: var(--success-color); 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 1.1rem;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn-save:hover { background: #218838; }
+        .btn-save:active { transform: scale(0.98); }
+
+        .btn-json { 
+            margin-top: auto;
+            background: transparent; 
+            color: #6c757d; 
+            text-decoration: none; 
+            display: block; 
+            text-align: center; 
+            padding: 10px; 
+            border: 2px solid #6c757d;
+            border-radius: 8px; 
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .btn-json:hover {
+            background: #6c757d;
+            color: white;
+        }
+
+        /* Адаптивность для мобилок */
+        @media (max-width: 900px) {
+            .forms-grid { flex-direction: column; align-items: center; }
+            .form-card { width: 100%; max-width: 500px; }
+        }
+    </style>
 </head>
 <body>
-    
-    <h1>🔭 Управление данными</h1>
 
-    <div>
-        <form action="/planets" method="get">
-            <button>JSON Планет</button>
-        </form>
+    <h1>🔭 Панель управления Планетарием</h1>
+
+    {% if success %}
+    <div class="alert" id="alert">✨ Отлично! Данные успешно сохранены в базу.</div>
+    <script>setTimeout(() => document.getElementById('alert').style.fadeOut='slow', 3000);</script>
+    <script>setTimeout(() => document.getElementById('alert').style.display='none', 3500);</script>
+    {% endif %}
+
+    <div class="forms-grid">
+        
+        <div class="form-card">
+            <h3>Созвездия</h3>
+            <form action="/add_constellation" method="post">
+                <label>Название объекта</label>
+                <input type="text" name="name" required>
+                <button type="submit" class="btn-save">Добавить созвездие</button>
+            </form>
+            <br>
+            <a href="/constellations" class="btn-json">Просмотр JSON</a>
+        </div>
+
+        <div class="form-card">
+            <h3>Звезды</h3>
+            <form action="/add_star" method="post">
+                <label>Название объекта</label>
+                <input type="text" name="name" required>
+                <label>Выбор родителя</label>
+                <select name="const_id" required>
+                    <option value="" disabled selected>-- Выберите созвездие --</option>
+                    {% for c in constellations %}
+                        <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-save">Добавить звезду</button>
+            </form>
+            <br>
+            <a href="/stars" class="btn-json">Просмотр JSON</a>
+        </div>
+
+        <div class="form-card">
+            <h3>Планеты</h3>
+            <form action="/add_planet" method="post">
+                <label>Название объекта</label>
+                <input type="text" name="name" required>
+                <label>Выбор родителя</label>
+                <select name="star_id" required>
+                    <option value="" disabled selected>-- Выберите звезду --</option>
+                    {% for s in stars %}
+                        <option value="{{ s.id }}">{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-save">Добавить планету</button>
+            </form>
+            <br>
+            <a href="/planets" class="btn-json">Просмотр JSON</a>
+        </div>
+
     </div>
-
-    <div class="block">
-        <h3>Добавить созвездие</h3>
-        <form action="/add_constellation" method="post">
-            <input type="text" name="name" placeholder="Название созвездия" required>
-            <button type="submit">Сохранить</button>
-            <button>JSON Созвездий</button>
-        </form>
-    </div>
-
-    <div class="block">
-        <h3>Добавить звезду</h3>
-        <form action="/add_star" method="post">
-            <input type="text" name="name" placeholder="Название звезды" required>
-            
-            <label>Выберите созвездие:</label>
-            <select name="const_id" required>
-                <option value="" disabled selected>-- Выберите из списка --</option>
-                {% for c in constellations %}
-                    <option value="{{ c.id }}">{{ c.name }}</option>
-                {% endfor %}
-            </select>
-            
-            <button type="submit">Привязать к созвездию</button>
-            <button>JSON Звезд</button>
-        </form>
-    </div>
-
 
 </body>
 </html>

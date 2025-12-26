@@ -13,18 +13,18 @@
 
 import sqlite3
 from fastapi.templating import Jinja2Templates
-from fastapi import Request, FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi import Request, FastAPI, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 
-
-conn = sqlite3.connect('db.db')
+DB_PATH = "planetarium.db"
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 # Включаем поддержку внешних ключей (чтобы связи работали)
 cursor.execute("PRAGMA foreign_keys = ON;")
 
 def get_db(table):
-    conn = sqlite3.connect('db.db')
+    conn = sqlite3.connect(DB_PATH)
     # По стандарту row_factory использует кортежи, но благодаря Row будет более удобно 
     # Row - это умный объект, который помнит не только значение, но и имена колонок
     conn.row_factory = sqlite3.Row
@@ -42,19 +42,14 @@ def get_db(table):
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
-# @app.get("/constellations/{a}")
-# async def read_constellations(a: int, b: str = None):
-#     return {"hello": a, "b": b}
-
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    constellations = get_db("constellations")
-    stars = get_db("stars")
-    planets = get_db("planets")
+async def read_form(request: Request, success: int = 0):
     return templates.TemplateResponse("index.html", {
         "request": request, 
-        "constellations": constellations,
-        "stars": stars
+        "constellations": get_db("constellations"),
+        "stars": get_db("stars"),
+        "planets": get_db("planets"),
+        "success": success
     })
 
 @app.get("/constellations")
@@ -73,40 +68,37 @@ async def read_planets():
     return result
 
 @app.post("/add_constellation")
-async def add_const(name: str):
-    conn = sqlite3.connect('db.db')
+async def add_const(name: str = Form(...)):
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute(f"INSERT INTO constellations (name) VALUES (?)", (name,))
     conn.commit()
     conn.close()
-    result = {"status": 200, "message": f"Добавлено в constellations {name}"}
-    return result
+    return RedirectResponse(url="/?success=1", status_code=303)
 
 @app.post("/add_star")
-async def add_star(name: str, const_id: int):
-    conn = sqlite3.connect('db.db')
+async def add_star(name: str = Form(...), const_id: int = Form(...)):
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute(f"INSERT INTO stars (name, const_id) VALUES (?, ?)", (name, const_id))
     conn.commit()
     conn.close()
-    result = {"status": 200, "message": f"Добавлено в stars {name} {const_id}"}
-    return result
+    return RedirectResponse(url="/?success=1", status_code=303)
 
 @app.post("/add_planet")
-async def add_planet(name: str, star_id: int):
-    conn = sqlite3.connect('db.db')
+async def add_planet(name: str = Form(...), star_id: int = Form(...)):
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
     cursor.execute(f"INSERT INTO planets (name, star_id) VALUES (?, ?)", (name, star_id))
     conn.commit()
     conn.close()
-    result = {"status": 200, "message": f"Добавлено в planets {name} {star_id}"}
-    return result
+    return RedirectResponse(url="/?success=1", status_code=303)
 
 
 cursor.execute('''
@@ -152,17 +144,5 @@ try:
 
 except:
     pass
-
-"""
-cursor.execute('''
-    SELECT p.name, s.name, c.name 
-    FROM planets p
-    JOIN stars s ON p.star_id = s.id
-    JOIN constellations c ON s.const_id = c.id
-''')
-
-for row in cursor.fetchall():
-    print(f"Планета: {row[0]} | Звезда: {row[1]} | Созвездие: {row[2]}")
-"""
 
 conn.close()
