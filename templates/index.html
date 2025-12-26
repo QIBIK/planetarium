@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Планетарий</title>
+    <!-- <style>
+        body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        .block { background: #f0f0f0; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .json-links { margin-bottom: 20px; }
+        .btn-json { display: inline-block; padding: 5px 10px; background: #666; color: white; text-decoration: none; border-radius: 3px; font-size: 12px; }
+        select, input { display: block; width: 100%; margin: 10px 0; padding: 5px; }
+        button { background: #007bff; color: white; border: none; padding: 10px; cursor: pointer; width: 100%; }
+    </style> -->
+</head>
+<body>
+    
+    <h1>🔭 Управление данными</h1>
+
+    <div>
+        <form action="/planets" method="get">
+            <button>JSON Планет</button>
+        </form>
+    </div>
+
+    <div class="block">
+        <h3>Добавить созвездие</h3>
+        <form action="/add_constellation" method="post">
+            <input type="text" name="name" placeholder="Название созвездия" required>
+            <button type="submit">Сохранить</button>
+            <button>JSON Созвездий</button>
+        </form>
+    </div>
+
+    <div class="block">
+        <h3>Добавить звезду</h3>
+        <form action="/add_star" method="post">
+            <input type="text" name="name" placeholder="Название звезды" required>
+            
+            <label>Выберите созвездие:</label>
+            <select name="const_id" required>
+                <option value="" disabled selected>-- Выберите из списка --</option>
+                {% for c in constellations %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit">Привязать к созвездию</button>
+            <button>JSON Звезд</button>
+        </form>
+    </div>
+
+
+</body>
+</html>
