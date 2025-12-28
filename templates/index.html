@@ -2,200 +2,177 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Управление Планетарием</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планетарий — Управление БД</title>
     <style>
         :root {
-            --bg-color: #f0f2f5;
+            --bg-color: #f4f7f6;
             --card-bg: #ffffff;
-            --primary-color: #007bff;
-            --success-color: #28a745;
-            --text-color: #333;
+            --primary-color: #2c3e50;
+            --accent-color: #3498db;
+            --success-color: #27ae60;
+            --export-bg: #2d3436;
+            --json-color: #e67e22;
         }
 
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-
-        h1 { margin-bottom: 40px; font-size: 2.5rem; color: #1a1a1a; }
-
-        /* Зеленое уведомление */
-        .alert { 
-            background: #d4edda; 
-            color: #155724; 
-            padding: 20px; 
-            border-radius: 10px; 
-            text-align: center; 
-            margin-bottom: 30px;
-            width: 100%;
-            max-width: 1100px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            font-weight: bold;
-        }
-
-        /* Контейнер для трех форм */
-        .forms-grid {
-            display: flex;
-            gap: 30px;
-            width: 100%;
-            max-width: 1200px;
-            justify-content: center;
-        }
-
-        .form-card {
-            background: var(--card-bg);
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            flex: 1;
-            min-width: 300px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-card h3 { 
-            margin-top: 0; 
-            font-size: 1.6rem; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
             color: var(--primary-color);
-            border-bottom: 3px solid var(--bg-color);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #666;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        input, select { 
-            width: 100%; 
-            padding: 15px; 
-            margin-bottom: 20px; 
-            border: 2px solid #e1e4e8; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            font-size: 1rem;
-            transition: border-color 0.3s;
+        h1 { margin-bottom: 30px; }
+
+        .alert {
+            background-color: #d4edda; color: #155724; padding: 15px; 
+            border-radius: 8px; margin-bottom: 20px; width: 100%; 
+            max-width: 1100px; text-align: center; border: 1px solid #c3e6cb;
         }
 
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-        }
-        
-        .btn-save { 
-            background: var(--success-color); 
-            color: white; 
-            border: none; 
-            padding: 15px; 
-            width: 100%; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 1.1rem;
-            transition: transform 0.1s, background 0.2s;
+        .forms-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px; width: 100%; max-width: 1200px;
         }
 
-        .btn-save:hover { background: #218838; }
-        .btn-save:active { transform: scale(0.98); }
-
-        .btn-json { 
-            margin-top: auto;
-            background: transparent; 
-            color: #6c757d; 
-            text-decoration: none; 
-            display: block; 
-            text-align: center; 
-            padding: 10px; 
-            border: 2px solid #6c757d;
-            border-radius: 8px; 
-            font-size: 0.9rem;
-            font-weight: bold;
-            transition: all 0.2s;
+        .card {
+            background: var(--card-bg); padding: 25px; 
+            border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
         }
 
-        .btn-json:hover {
-            background: #6c757d;
-            color: white;
+        .card h3 {
+            margin-top: 0; border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px; color: var(--accent-color);
+            display: flex; justify-content: space-between; align-items: center;
         }
 
-        /* Адаптивность для мобилок */
-        @media (max-width: 900px) {
-            .forms-grid { flex-direction: column; align-items: center; }
-            .form-card { width: 100%; max-width: 500px; }
+        /* Кнопка JSON */
+        .btn-json {
+            font-size: 0.6em; background: var(--json-color);
+            color: white; text-decoration: none; padding: 4px 8px;
+            border-radius: 4px; transition: 0.3s;
         }
+        .btn-json:hover { background: #d35400; }
+
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        input, select {
+            width: 100%; padding: 10px; margin-bottom: 20px;
+            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+        }
+
+        .btn-add { 
+            background-color: var(--success-color); color: white; 
+            width: 100%; padding: 12px; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: bold;
+        }
+
+        .xml-section {
+            margin-top: 40px; width: 100%; max-width: 1200px;
+            background-color: var(--export-bg); color: white;
+            padding: 30px; border-radius: 12px;
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;
+        }
+
+        .btn-export {
+            background-color: #f1c40f; color: #000; text-decoration: none;
+            padding: 12px 25px; border-radius: 6px; font-weight: bold;
+        }
+
+        .import-form {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.1); padding: 10px;
+            border-radius: 8px; border: 1px dashed #777;
+        }
+
+        .import-form input[type="file"] { color: white; }
     </style>
 </head>
 <body>
 
-    <h1>🔭 Панель управления Планетарием</h1>
+    <h1>🔭 Планетарий: Управление созвездиями</h1>
 
     {% if success %}
-    <div class="alert" id="alert">✨ Отлично! Данные успешно сохранены в базу.</div>
-    <script>setTimeout(() => document.getElementById('alert').style.fadeOut='slow', 3000);</script>
-    <script>setTimeout(() => document.getElementById('alert').style.display='none', 3500);</script>
+        <div class="alert">✅ Данные успешно обновлены!</div>
     {% endif %}
 
-    <div class="forms-grid">
-        
-        <div class="form-card">
-            <h3>Созвездия</h3>
+    <div class="forms-container">
+        <div class="card">
+            <h3>🌌 Созвездия <a href="/constellations" class="btn-json" target="_blank">JSON API</a></h3>
             <form action="/add_constellation" method="post">
-                <label>Название объекта</label>
+                <label>Название:</label>
                 <input type="text" name="name" required>
-                <button type="submit" class="btn-save">Добавить созвездие</button>
+                <button type="submit" class="btn-add">Добавить</button>
             </form>
-            <br>
-            <a href="/constellations" class="btn-json">Просмотр JSON</a>
         </div>
 
-        <div class="form-card">
-            <h3>Звезды</h3>
+        <div class="card">
+            <h3>⭐ Звезды <a href="/stars" class="btn-json" target="_blank">JSON API</a></h3>
             <form action="/add_star" method="post">
-                <label>Название объекта</label>
+                <label>Название:</label>
                 <input type="text" name="name" required>
-                <label>Выбор родителя</label>
-                <select name="const_id" required>
-                    <option value="" disabled selected>-- Выберите созвездие --</option>
+                <label>Созвездие:</label>
+                <select name="const_id">
                     {% for c in constellations %}
                         <option value="{{ c.id }}">{{ c.name }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn-save">Добавить звезду</button>
+                <button type="submit" class="btn-add">Добавить</button>
             </form>
-            <br>
-            <a href="/stars" class="btn-json">Просмотр JSON</a>
         </div>
 
-        <div class="form-card">
-            <h3>Планеты</h3>
+        <div class="card">
+            <h3>🪐 Планеты <a href="/planets" class="btn-json" target="_blank">JSON API</a></h3>
             <form action="/add_planet" method="post">
-                <label>Название объекта</label>
+                <label>Название:</label>
                 <input type="text" name="name" required>
-                <label>Выбор родителя</label>
-                <select name="star_id" required>
-                    <option value="" disabled selected>-- Выберите звезду --</option>
+                <label>Звезда:</label>
+                <select name="star_id">
                     {% for s in stars %}
                         <option value="{{ s.id }}">{{ s.name }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn-save">Добавить планету</button>
+                <button type="submit" class="btn-add">Добавить</button>
             </form>
-            <br>
-            <a href="/planets" class="btn-json">Просмотр JSON</a>
         </div>
-
     </div>
+
+    <div class="xml-section">
+        <div>
+            <h2 style="margin:0;">📦 Обмен данными XML</h2>
+            <p style="margin: 5px 0 0 0; color: #bdc3c7;">(по методичке DOM-модель)</p>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <a href="/export" class="btn-export">📥 Скачать XML</a>
+            <form action="/import" method="post" enctype="multipart/form-data" class="import-form">
+                <input type="file" name="file" accept=".xml" required>
+                <button type="submit" style="background:#95a5a6; color:white; width:auto; padding:10px;">📤 Загрузить</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        // Ждем, пока страница полностью загрузится
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // Ищем элемент с классом alert
+            const alert = document.querySelector('.alert');
+            
+            if (alert) {
+                // Устанавливаем таймер на 3000 миллисекунд (3 секунды)
+                setTimeout(() => {
+                    // Плавное исчезновение через прозрачность
+                    alert.style.transition = "opacity 0.6s ease";
+                    alert.style.opacity = "0";
+                    
+                    // Полное удаление из документа через 0.6 сек после начала исчезновения
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 600);
+                }, 3000);
+            }
+        });
+    </script>
 
 </body>
 </html>
