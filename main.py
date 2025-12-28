@@ -17,11 +17,58 @@ from fastapi import Request, FastAPI, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 DB_PATH = "planetarium.db"
-conn = sqlite3.connect(DB_PATH)
-cursor = conn.cursor()
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
-# Включаем поддержку внешних ключей (чтобы связи работали)
-cursor.execute("PRAGMA foreign_keys = ON;")
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    # Включаем поддержку внешних ключей (чтобы связи работали)
+    cursor.execute("PRAGMA foreign_keys = ON;")
+    
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS constellations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS stars (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        const_id INTEGER NOT NULL,
+        FOREIGN KEY (const_id) REFERENCES constellations (id) ON DELETE CASCADE
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS planets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        star_id INTEGER NOT NULL,
+        FOREIGN KEY (star_id) REFERENCES stars (id) ON DELETE CASCADE
+    )
+    ''')
+
+    cursor.execute("INSERT OR IGNORE INTO constellations (name) VALUES "
+    "('Орион'), ('Лира'), ('Лебедь')")
+    
+    cursor.execute("INSERT OR IGNORE INTO stars (name, const_id) VALUES"
+    "('Бетельгейзе', 1), "
+    "('Вега', 2), "
+    "('Денеб', 3)")
+    
+    cursor.execute("INSERT OR IGNORE INTO planets (name, star_id) VALUES"
+    "('Аракис', 1), ('Каладан', 1), ('Гьеди Прайм', 1),"
+    "('Проксима', 2), ('Нова', 2), ('Терра', 2),"
+    "('Солярис', 3), ('Пандора', 3), ('Эгида', 3);")
+    
+    conn.commit()
+    conn.close()
+
+init_db()
 
 def get_db(table):
     conn = sqlite3.connect(DB_PATH)
@@ -38,9 +85,6 @@ def get_db(table):
     conn.close()
 
     return result
-
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_form(request: Request, success: int = 0):
@@ -99,50 +143,3 @@ async def add_planet(name: str = Form(...), star_id: int = Form(...)):
     conn.commit()
     conn.close()
     return RedirectResponse(url="/?success=1", status_code=303)
-
-
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS constellations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
-)
-''')
-
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS stars (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    const_id INTEGER NOT NULL,
-    FOREIGN KEY (const_id) REFERENCES constellations (id) ON DELETE CASCADE
-)
-''')
-
-cursor.execute('''
-CREATE TABLE IF NOT EXISTS planets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    star_id INTEGER NOT NULL,
-    FOREIGN KEY (star_id) REFERENCES stars (id) ON DELETE CASCADE
-)
-''')
-
-try:
-    cursor.execute("INSERT INTO constellations (name) VALUES "
-    "('Орион'), ('Лира'), ('Лебедь')")
-    
-    cursor.execute("INSERT INTO stars (name, const_id) VALUES"
-    "('Бетельгейзе', 1), "
-    "('Вега', 2), "
-    "('Денеб', 3)")
-    
-    cursor.execute("INSERT INTO planets (name, star_id) VALUES"
-    "('Аракис', 1), ('Каладан', 1), ('Гьеди Прайм', 1),"
-    "('Проксима', 2), ('Нова', 2), ('Терра', 2),"
-    "('Солярис', 3), ('Пандора', 3), ('Эгида', 3);")
-    
-    conn.commit()
-
-except:
-    pass
-
-conn.close()
