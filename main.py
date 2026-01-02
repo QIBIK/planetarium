@@ -1,25 +1,14 @@
-"""
-создать БД в соответствии с заданной предметной областью,
-БД должна содержать не менее трех связанных таблиц,
-заполнить таблицы БД информацией с помощью SQL-запросов,
-инициализировать приложение FastAPI,
-настроить соединение с базой данных,
-определить endpoints для получения информации из всех таблиц, для добавления записей во все таблицы,
-создать HTML форму для создания новых записей (использовать Jinja2 шаблоны с FastAPI),
-осуществить экспорт и импорт одной любой таблицы из/в базу данных в формате xml.
-
-ТЕМА: Планетарий
-"""
-
 import xml.dom.minidom
 import sqlite3
-from fastapi.templating import Jinja2Templates
 from fastapi import Request, FastAPI, Form, UploadFile, File
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 
 DB_PATH = "planetarium.db"
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -28,48 +17,15 @@ def init_db():
     # Включаем поддержку внешних ключей (чтобы связи работали)
     cursor.execute("PRAGMA foreign_keys = ON;")
     
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS constellations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
-    )
-    ''')
+    with open('init.sql', 'r', encoding='utf-8') as f:
+        sql_script = f.read()
+    
+    # Выполняем всё разом
+    cursor.executescript(sql_script)
 
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS stars (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        const_id INTEGER NOT NULL,
-        FOREIGN KEY (const_id) REFERENCES constellations (id) ON DELETE CASCADE
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS planets (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE,
-        star_id INTEGER NOT NULL,
-        FOREIGN KEY (star_id) REFERENCES stars (id) ON DELETE CASCADE
-    )
-    ''')
-
-    cursor.execute("SELECT COUNT(*) FROM constellations")
-    if cursor.fetchone()[0] == 0:
-        cursor.execute("INSERT INTO constellations (name) VALUES "
-        "('Орион'), ('Лира'), ('Лебедь')")
-        
-        cursor.execute("INSERT INTO stars (name, const_id) VALUES"
-        "('Бетельгейзе', 1), "
-        "('Вега', 2), "
-        "('Денеб', 3)")
-        
-        cursor.execute("INSERT INTO planets (name, star_id) VALUES"
-        "('Аракис', 1), ('Каладан', 1), ('Гьеди Прайм', 1),"
-        "('Проксима', 2), ('Нова', 2), ('Терра', 2),"
-        "('Солярис', 3), ('Пандора', 3), ('Эгида', 3);")
-            
-        conn.commit()
+    conn.commit()
     conn.close()
+    print("База данных успешно инициализирована и заполнена.")
 
 init_db()
 
